@@ -1,9 +1,15 @@
 import React, { Component, PropTypes } from 'react';
 import { findDOMNode } from 'react-dom';
 
+let getUserMedia
+try {
+  getUserMedia = require('getusermedia')
+} catch (err) {
+  console.log('getUserMedia not supported', err)
+}
+
 function hasGetUserMedia() {
-  return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia || navigator.msGetUserMedia);
+  return !!getUserMedia;
 }
 
 export default class Webcam extends Component {
@@ -57,12 +63,12 @@ export default class Webcam extends Component {
   }
 
   requestUserMedia() {
-    navigator.getUserMedia = navigator.getUserMedia ||
-                          navigator.webkitGetUserMedia ||
-                          navigator.mozGetUserMedia ||
-                          navigator.msGetUserMedia;
+    this._requestUserMedia()
+    Webcam.userMediaRequested = true
+  }
 
-    let sourceSelected = (audioSource, videoSource) => {
+  async _requestUserMedia() {
+    let sourceSelected = ({ audioSource, videoSource }) => {
       let constraints = {
         video: {
           optional: [{sourceId: videoSource}]
@@ -75,53 +81,56 @@ export default class Webcam extends Component {
         };
       }
 
-      navigator.getUserMedia(constraints, (stream) => {
+      getUserMedia(constraints, (err, stream) => {
+        if (err) {
+          returnWebcam.mountedInstances.forEach((instance) => instance.handleUserMedia(e));
+        }
+
         Webcam.mountedInstances.forEach((instance) => instance.handleUserMedia(null, stream));
-      }, (e) => {
-        Webcam.mountedInstances.forEach((instance) => instance.handleUserMedia(e));
       });
     };
 
     if (this.props.audioSource && this.props.videoSource) {
-      sourceSelected(this.props.audioSource, this.props.videoSource);
-    } else {
-      if ('mediaDevices' in navigator) {
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          let audioSource = null;
-          let videoSource = null;
-
-          devices.forEach((device) => {
-            if (device.kind === 'audioinput') {
-              audioSource = device.deviceId;
-            } else if (device.kind === 'videoinput') {
-              videoSource = device.deviceId;
-            }
-          });
-
-          sourceSelected(audioSource, videoSource);
-        })
-        .catch((error) => {
-          console.log(`${error.name}: ${error.message}`); // eslint-disable-line no-console
-        });
-      } else {
-        MediaStreamTrack.getSources((sources) => {
-          let audioSource = null;
-          let videoSource = null;
-
-          sources.forEach((source) => {
-            if (source.kind === 'audio') {
-              audioSource = source.id;
-            } else if (source.kind === 'video') {
-              videoSource = source.id;
-            }
-          });
-
-          sourceSelected(audioSource, videoSource);
-        });
-      }
+      return sourceSelected(this.props)
     }
 
-    Webcam.userMediaRequested = true;
+    if ('mediaDevices' in navigator) {
+      let devices
+      try {
+        devices = await navigator.mediaDevices.enumerateDevices()
+      } catch (erroer) {
+        console.log(`${error.name}: ${error.message}`); // eslint-disable-line no-console
+        return
+      }
+
+      let audioSource = null;
+      let videoSource = null;
+
+      devices.forEach((device) => {
+        if (device.kind === 'audioinput') {
+          audioSource = device.deviceId;
+        } else if (device.kind === 'videoinput') {
+          videoSource = device.deviceId;
+        }
+      });
+
+      return sourceSelected({ audioSource, videoSource })
+    }
+
+    MediaStreamTrack.getSources((sources) => {
+      let audioSource = null;
+      let videoSource = null;
+
+      sources.forEach((source) => {
+        if (source.kind === 'audio') {
+          audioSource = source.id;
+        } else if (source.kind === 'video') {
+          videoSource = source.id;
+        }
+      });
+
+      sourceSelected({ audioSource, videoSource });
+    })
   }
 
   handleUserMedia(error, stream) {
