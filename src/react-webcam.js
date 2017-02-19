@@ -189,11 +189,11 @@ export default class Webcam extends Component {
 
     const video = findDOMNode(this);
     if (!this.ctx) {
-      let canvas = document.createElement('canvas');
+      const canvas = document.createElement('canvas');
       const aspectRatio = video.videoWidth / video.videoHeight;
-
-      canvas.width = video.clientWidth;
-      canvas.height = video.clientWidth / aspectRatio;
+      const width = Math.min(video.clientHeight * aspectRatio, video.clientWidth)
+      canvas.width = width;
+      canvas.height = width / aspectRatio;
 
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
