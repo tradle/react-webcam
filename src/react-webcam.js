@@ -83,7 +83,7 @@ export default class Webcam extends Component {
 
       getUserMedia(constraints, (err, stream) => {
         if (err) {
-          returnWebcam.mountedInstances.forEach((instance) => instance.handleUserMedia(e));
+          return Webcam.mountedInstances.forEach((instance) => instance.handleUserMedia(err));
         }
 
         Webcam.mountedInstances.forEach((instance) => instance.handleUserMedia(null, stream));
@@ -98,7 +98,7 @@ export default class Webcam extends Component {
       let devices
       try {
         devices = await navigator.mediaDevices.enumerateDevices()
-      } catch (erroer) {
+      } catch (error) {
         console.log(`${error.name}: ${error.message}`); // eslint-disable-line no-console
         return
       }
