@@ -139,6 +139,7 @@ export default class Webcam extends Component {
         hasUserMedia: false
       });
 
+      this.props.onUserMedia(error)
       return;
     }
 
