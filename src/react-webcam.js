@@ -199,9 +199,7 @@ export default class Webcam extends Component {
       }
 
       getUserMedia(constraints, (err, stream) => {
-        Webcam.mountedInstances.forEach(instance =>
-          instance.handleUserMedia(err, stream),
-        );
+        Webcam.mountedInstances.forEach(instance => instance.handleUserMedia(err, stream));
       });
     };
 
@@ -211,13 +209,17 @@ export default class Webcam extends Component {
       const optionalSource = id => ({ optional: [{ sourceId: id }] });
 
       const constraintToSourceId = (constraint) => {
-        const deviceId = (constraint || {}).deviceId;
+        const { deviceId } = constraint || {};
 
         if (typeof deviceId === 'string') {
           return deviceId;
-        } else if (Array.isArray(deviceId) && deviceId.length > 0) {
+        }
+
+        if (Array.isArray(deviceId) && deviceId.length > 0) {
           return deviceId[0];
-        } else if (typeof deviceId === 'object' && deviceId.ideal) {
+        }
+
+        if (typeof deviceId === 'object' && deviceId.ideal) {
           return deviceId.ideal;
         }
 

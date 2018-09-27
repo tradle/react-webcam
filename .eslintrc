@@ -6,10 +6,16 @@
     "mocha": true,
     "node": true
   },
+  "settings": {
+    "import/core-modules": ["react"]
+  },
   "rules": {
     "jsx-a11y/media-has-caption": 0,
     "react/forbid-prop-types": 0,
     "react/jsx-filename-extension": 0,
-    "react/require-default-props": 0
+    "react/require-default-props": 0,
+    "react/destructuring-assignment": 0,
+    "operator-linebreak": 0,
+    "implicit-arrow-linebreak": 0
   }
 }
